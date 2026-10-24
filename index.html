@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>순수 CSS 가상 모바일 OS</title>
+    <style>
+        :root {
+            --phone-width: 360px;
+            --phone-height: 740px;
+        }
+
+        body {
+            background-color: #1a1a1a;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        /* 스마트폰 외형 */
+        .phone-frame {
+            width: var(--phone-width);
+            height: var(--phone-height);
+            border: 12px solid #333;
+            border-radius: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, #1f1c2c, #928dab);
+        }
+
+        /* ⚠️ 핵심 트릭: 화면 전환용 라디오 버튼 (화면에서 보이지 않게 숨김) */
+        input[type="radio"] {
+            display: none;
+        }
+
+        /* 상단 상태바 */
+        .status-bar {
+            height: 30px;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            position: absolute;
+            width: calc(100% - 40px);
+            z-index: 100;
+        }
+
+        /* 모든 화면의 기본 상태: 숨김 */
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            box-sizing: border-box;
+            padding-top: 40px;
+        }
+
+        /* ------------------------------------------------
+           💡 CSS의 마법: 선택된 라디오 버튼에 따라 특정 화면만 보이기
+        ------------------------------------------------ */
+        #menu-home:checked ~ #home-screen { display: block; }
+        #menu-msg:checked ~ #message-screen { display: block; }
+        #menu-gallery:checked ~ #gallery-screen { display: block; }
+
+        /* 홈 화면 내 아이콘 배치 */
+        #home-screen { padding-top: 60px; }
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            padding: 20px;
+        }
+
+        /* 아이콘 역할을 하는 label 태그 (클릭하면 라디오 버튼이 켜짐) */
+        .app-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .icon-shape {
+            width: 55px;
+            height: 55px;
+            border-radius: 14px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            transition: transform 0.1s;
+        }
+
+        .app-icon:hover .icon-shape { transform: scale(1.05); }
+        .app-name { font-size: 0.75rem; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); }
+
+        /* 하단 네비게이션 홈 바 */
+        .nav-bar {
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        /* 홈 버튼 역할을 하는 label 태그 */
+        .home-btn {
+            width: 120px;
+            height: 5px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        /* 앱 내부 공통 디자인 */
+        .app-page {
+            background-color: #121212;
+            height: calc(100% - 40px);
+            padding: 20px;
+        }
+        .app-header {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="phone-frame">
+        <!-- 상단 상태바 -->
+        <div class="status-bar">
+            <span>12:00</span>
+            <span>📶 🔋 100%</span>
+        </div>
+
+        <!-- 1. 리모컨 역할을 할 라디오 버튼들 (체크 상태에 따라 화면이 교체됨) -->
+        <input type="radio" name="phone-menu" id="menu-home" checked>
+        <input type="radio" name="phone-menu" id="menu-msg">
+        <input type="radio" name="phone-menu" id="menu-gallery">
+
+        <!-- 2. 홈 화면 -->
+        <div id="home-screen" class="screen">
+            <div class="icon-grid">
+                <!-- 메시지 앱 아이콘 (menu-msg 라디오 버튼과 연결) -->
+                <label for="menu-msg" class="app-icon">
+                    <div class="icon-shape" style="background-color: #25D366;">💬</div>
+                    <div class="app-name">비밀 메시지</div>
+                </label>
+                
+                <!-- 데이터룸 앱 아이콘 (menu-gallery 라디오 버튼과 연결) -->
+                <label for="menu-gallery" class="app-icon">
+                    <div class="icon-shape" style="background-color: #FF9500;">📁</div>
+                    <div class="app-name">데이터룸</div>
+                </label>
+            </div>
+        </div>
+
+        <!-- 3. 메시지 앱 화면 -->
+        <div id="message-screen" class="screen">
+            <div class="app-page">
+                <div class="app-header">📩 수신된 통신</div>
+                <p style="color: #00f0ff;">[시스템]: 4차 혁명 가상 노드가 활성화되었습니다.</p>
+            </div>
+        </div>
+
+        <!-- 4. 데이터룸 앱 화면 -->
+        <div id="gallery-screen" class="screen">
+            <div class="app-page">
+                <div class="app-header">📁 기밀 데이터</div>
+                <p>CSS 스위치만으로 정상 작동하는 보안 저장소입니다.</p>
+            </div>
+        </div>
+
+        <!-- 하단 홈 네비게이션 바 (누르면 menu-home 라디오 버튼이 켜짐) -->
+        <div class="nav-bar">
+            <label for="menu-home" class="home-btn"></label>
+        </div>
+    </div>
+
+</body>
+</html>
