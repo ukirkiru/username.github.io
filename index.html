@@ -182,10 +182,123 @@
     position: absolute; left: 50%; transform: translateX(-50%); top: -48px; color: #aaa; font-size: 13px; white-space: nowrap;
   }
 </style>
+ /* LOCK SCREEN */
+.lock-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 150;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  color: white;
+  background:
+    radial-gradient(ellipse at 20% 30%, rgba(255,180,210,.75), transparent 45%),
+    radial-gradient(ellipse at 80% 55%, rgba(100,100,220,.8), transparent 50%),
+    linear-gradient(160deg, #18274d, #573c83 55%, #e58ca6);
+  padding: 22px 24px 35px;
+}
+
+.lock-screen.hidden {
+  display: none;
+}
+
+.lock-top {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 5px 10px;
+}
+
+.lock-info {
+  text-align: center;
+  margin-top: -110px;
+}
+
+.lock-date {
+  font-size: 17px;
+  margin-bottom: 5px;
+  text-shadow: 0 2px 8px #3335;
+}
+
+.lock-time {
+  font-size: 82px;
+  font-weight: 300;
+  letter-spacing: -3px;
+  line-height: 1.1;
+  text-shadow: 0 2px 10px #3333;
+}
+
+.lock-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+}
+
+.lock-shortcuts {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 8px;
+}
+
+.lock-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(0,0,0,.28);
+  border: 1px solid rgba(255,255,255,.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.unlock-btn {
+  border: none;
+  background: transparent;
+  color: white;
+  font-size: 25px;
+  text-align: center;
+  cursor: pointer;
+  text-shadow: 0 1px 5px #3335;
+}
+
+.unlock-btn span {
+  font-size: 13px;
+  letter-spacing: .5px;
+}
 </head>
 <body>
 <div class="phone">
   <div class="screen-wrap" id="wrap">
+   <!-- 잠금화면 -->
+<div class="lock-screen" id="lockScreen">
+  <div class="lock-top">
+    <span>●</span>
+    <span>SKT 5G ▮</span>
+  </div>
+
+  <div class="lock-info">
+    <div class="lock-date" id="lockDate"></div>
+    <div class="lock-time" id="lockTime">9:41</div>
+  </div>
+
+  <div class="lock-bottom">
+    <div class="lock-shortcuts">
+      <div class="lock-circle" onclick="toast('손전등')">🔦</div>
+      <div class="lock-circle" onclick="toast('카메라')">📷</div>
+    </div>
+
+    <button class="unlock-btn" onclick="unlockPhone()">
+      ↑<br>
+      <span>탭하여 잠금 해제</span>
+    </button>
+  </div>
+</div>
     <div class="island"></div>
     <div class="statusbar" id="statusbar">
       <span id="clock">9:41</span>
@@ -437,6 +550,10 @@ function openApp(id) {
   else if (id === 'facebook') { renderFB(); showScreen('facebook'); }
 }
 function goHome() { showScreen('home'); }
+ // 잠금화면 해제
+function unlockPhone() {
+  $('lockScreen').classList.add('hidden');
+}
 function toast(msg) {
   const t = $('toast');
   t.textContent = msg; t.classList.add('show');
