@@ -3,57 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>순수 CSS 가상 모바일 OS v2</title>
+    <title>가상 iOS 18 인터페이스</title>
     <style>
         :root {
             --phone-width: 360px;
             --phone-height: 740px;
+            /*  아이폰 기본 서체 시스템 모방 */
+            --ios-font: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
         }
 
         body {
-            background-color: #1a1a1a;
+            background-color: #000;
             color: #fff;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: var(--ios-font);
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
+            letter-spacing: -0.5px;
         }
 
-        /* 스마트폰 외형 */
+        /* 📱 아이폰 15/16 프로 스타일의 슬림 베젤 프레임 */
         .phone-frame {
             width: var(--phone-width);
             height: var(--phone-height);
-            border: 12px solid #333;
-            border-radius: 40px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+            border: 10px solid #1c1c1e;
+            border-radius: 48px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.9), inset 0 0 4px rgba(255,255,255,0.2);
             position: relative;
             overflow: hidden;
-            background: linear-gradient(135deg, #12100e, #2b4141); /* 4차혁명 딥 테마 배경 */
+            /* 아이폰 순정 스타일 우주 그라데이션 배경화면 */
+            background: linear-gradient(180deg, #1d1c2b 0%, #152238 50%, #0b0f19 100%);
         }
 
-        /* ⚠️ 화면 전환용 라디오 버튼 숨김 */
-        input[type="radio"] {
-            display: none;
-        }
+        /* ⚠️ 화면 전환 스위치 (숨김) */
+        input[type="radio"] { display: none; }
 
-        /* 상단 상태바 */
+        /* 🔋 iOS 순정 스타일 상단 상태바 */
         .status-bar {
-            height: 30px;
-            padding: 0 20px;
+            height: 34px;
+            padding: 0 28px 0 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 0.8rem;
-            font-weight: bold;
+            font-size: 0.85rem;
+            font-weight: 600;
             position: absolute;
-            width: calc(100% - 40px);
+            width: calc(100% - 52px);
             z-index: 100;
-            background: rgba(0, 0, 0, 0.2);
+        }
+        .status-right {
+            display: flex;
+            gap: 5px;
+            font-size: 0.8rem;
         }
 
-        /* 모든 화면 기본 공통 상태: 숨김 */
+        /* 🔲 아이폰 다이내믹 아일랜드 (Dynamic Island) 노치 */
+        .dynamic-island {
+            width: 110px;
+            height: 28px;
+            background-color: #000;
+            border-radius: 20px;
+            position: absolute;
+            top: 7px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 110;
+        }
+
+        /* 모든 화면 공통 레이아웃 */
         .screen {
             position: absolute;
             top: 0;
@@ -62,25 +81,61 @@
             height: 100%;
             display: none;
             box-sizing: border-box;
-            padding-top: 30px; /* 상태바 공간 만큼 확보 */
+            padding-top: 45px;
         }
 
-        /* 💡 라디오 버튼 체크 상태에 따른 화면 교체 제어 */
+        /* 라디오 버튼에 따른 화면 제어 */
         #menu-home:checked ~ #home-screen { display: block; }
         #menu-msg:checked ~ #message-screen { display: block; }
         #menu-gallery:checked ~ #gallery-screen { display: block; }
         #menu-kakao:checked ~ #kakao-screen { display: block; }
 
-        /* 홈 화면 바탕화면 아이콘 배치 */
-        #home-screen { padding-top: 60px; }
-        .icon-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-            padding: 20px;
+        /* ------------------------------------------------
+           🏡 iOS 홈 화면 테마 (그리드, 위젯, 독)
+        ------------------------------------------------ */
+        #home-screen {
+            padding: 50px 16px 90px 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+            box-sizing: border-box;
         }
 
-        /* 아이콘 라벨 버튼 */
+        /* iOS 스타일의 커다란 가상 사각형 위젯 공간 */
+        .ios-widget {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(20px);
+            border-radius: 22px;
+            padding: 16px;
+            height: 110px;
+            margin-bottom: 15px;
+            border: 0.5px solid rgba(255,255,255,0.1);
+        }
+        .widget-title { font-size: 0.75rem; color: rgba(255,255,255,0.6); font-weight: 600; margin-bottom: 4px;}
+        .widget-body { font-size: 1.25rem; font-weight: 300; line-height: 1.3; }
+
+        /* 일반 앱 아이콘 배치 그리드 (4열 구성) */
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            row-gap: 20px;
+            column-gap: 14px;
+        }
+
+        /* iOS 전용 반투명 하단 독 (Dock) 바 */
+        .ios-dock {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(30px);
+            border-radius: 30px;
+            padding: 12px 14px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            border: 0.5px solid rgba(255,255,255,0.15);
+        }
+
+        /* 아이콘 공통 그래픽 디자인 */
         .app-icon {
             display: flex;
             flex-direction: column;
@@ -89,219 +144,141 @@
             text-align: center;
         }
 
-        .icon-shape {
-            width: 55px;
-            height: 55px;
+        /*  iOS 정밀 규격 스쿼클(둥근 사각형) 모서리 디자인 */
+        .icon-img-wrapper {
+            width: 58px;
+            height: 58px;
             border-radius: 14px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.8rem;
-            margin-bottom: 5px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
-            transition: transform 0.1s;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+            margin-bottom: 6px;
+            transition: transform 0.15s cubic-bezier(0.2, 0, 0.2, 1);
+        }
+        .app-icon:active .icon-img-wrapper { transform: scale(0.9); }
+        .icon-img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* 아이콘 밑 한글 텍스트 윤곽 */
+        .app-name {
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: #fff;
+            text-shadow: 0px 1px 2px rgba(0,0,0,0.6);
         }
 
-        .app-icon:hover .icon-shape { transform: scale(1.05); }
-        .app-name { font-size: 0.75rem; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); }
-
-        /* 하단 소프트웨어 내비게이션 바 (가로 바) */
-        .nav-bar {
+        /* ------------------------------------------------
+           🔙 iOS 하단 스와이프 홈 바
+        ------------------------------------------------ */
+        .ios-home-indicator {
             position: absolute;
-            bottom: 10px;
-            left: 0;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            z-index: 100;
-        }
-        .home-btn {
-            width: 120px;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 135px;
             height: 5px;
-            background-color: rgba(255, 255, 255, 0.6);
-            border-radius: 3px;
+            background-color: #fff;
+            border-radius: 10px;
+            z-index: 100;
             cursor: pointer;
         }
 
         /* ------------------------------------------------
-           📱 앱 내부 디자인 공통 요소
+           📱 애플 순정형 앱 상세 내용 페이지 내부 구조
         ------------------------------------------------ */
         .app-page {
-            background-color: #121212;
+            background-color: #000;
             height: 100%;
             display: flex;
             flex-direction: column;
         }
 
-        /* 상단 네비게이션 헤더 바 (뒤로가기 버튼 장착 영역) */
-        .app-top-bar {
+        /* iOS형 상단 네비 바 */
+        .ios-top-bar {
             display: flex;
             align-items: center;
-            padding: 10px 15px;
-            border-bottom: 1px solid #222;
-            background-color: #1a1a1a;
+            padding: 14px 16px;
+            background-color: #000;
         }
-
-        /* 🔙 뒤로가기 버튼 스타일 (라벨 활용) */
-        .back-btn {
+        .back-chevron {
             cursor: pointer;
-            font-size: 1.2rem;
-            color: #00f0ff;
-            margin-right: 15px;
-            padding: 2px 8px;
-            border-radius: 5px;
+            font-size: 1.15rem;
+            color: #0a84ff; /* iOS 틴트 블루 색상 */
+            margin-right: 8px;
             user-select: none;
+            font-weight: 400;
         }
-        .back-btn:hover { background-color: rgba(255,255,255,0.1); }
+        .ios-title { font-size: 1.1rem; font-weight: 700; color: #fff; }
 
-        .app-title {
-            font-size: 1.1rem;
-            font-weight: bold;
-        }
-
-        .app-content {
-            padding: 20px;
-            flex: 1;
-            overflow-y: auto;
-        }
-
-        /* ------------------------------------------------
-           💛 카카오톡 앱 내부 인터페이스 스타일
-        ------------------------------------------------ */
-        .kakao-bg {
-            background-color: #ffffff; /* 카카오톡 배경색 */
-        }
-        .chat-list {
-            display: flex;
-            flex-direction: column;
-        }
-        .chat-item {
-            display: flex;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid #252525;
-        }
-        .chat-avatar {
-            width: 45px;
-            height: 45px;
-            border-radius: 16px;
-            background-color: #ffe300;
-            margin-right: 12px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.2rem;
-        }
-        .chat-info {
-            flex: 1;
-        }
-        .chat-name {
-            font-size: 0.95rem;
-            font-weight: bold;
-            color: #e5e5e5;
-            margin-bottom: 4px;
-        }
-        .chat-preview {
-            font-size: 0.8rem;
-            color: #8c8c8c;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 200px;
-        }
-        .chat-meta {
-            text-align: right;
-            font-size: 0.75rem;
-            color: #666;
-        }
+        /* 💬 카카오톡 앱 내부 (iOS 다크모드 완벽 이식) */
+        .kakao-bg { background-color: #191919; }
+        .chat-list { display: flex; flex-direction: column; padding: 0 16px; }
+        .chat-item { display: flex; align-items: center; padding: 14px 0; border-bottom: 0.5px solid #2c2c2e; }
+        .chat-avatar { width: 48px; height: 48px; border-radius: 17px; background-color: #3a3a3c; margin-right: 12px; display: flex; justify-content: center; align-items: center; font-size: 1.4rem; }
+        .chat-info { flex: 1; }
+        .chat-name { font-size: 0.95rem; font-weight: 600; color: #fff; margin-bottom: 3px; }
+        .chat-preview { font-size: 0.82rem; color: #aeaeae; }
+        .chat-meta { font-size: 0.75rem; color: #646466; text-align: right; }
     </style>
 </head>
 <body>
 
     <div class="phone-frame">
-        <!-- 상단 고정 상태바 -->
+        <!-- 🎛️ 상단 아일랜드 & 시계바 고정 -->
+        <div class="dynamic-island"></div>
         <div class="status-bar">
-            <span>05:52</span>
-            <span>📶 🔋 98%</span>
+            <span>09:41</span>
+            <div class="status-right">📶 🪫 100%</div>
         </div>
 
-        <!-- 1. 리모컨용 스위치 (카카오톡 대응 menu-kakao 추가) -->
-        <input type="radio" name="phone-menu" id="menu-home" checked>
-        <input type="radio" name="phone-menu" id="menu-msg">
-        <input type="radio" name="phone-menu" id="menu-gallery">
-        <input type="radio" name="phone-menu" id="menu-kakao">
+        <!-- 🕹️ 제어 라디오 스위치 일람 -->
+        <input type="radio" name="ios-menu" id="menu-home" checked>
+        <input type="radio" name="ios-menu" id="menu-msg">
+        <input type="radio" name="ios-menu" id="menu-gallery">
+        <input type="radio" name="ios-menu" id="menu-kakao">
 
-        <!-- 2. 기본 홈 화면 -->
+        <!-- 🏡 [1] iOS 홈 화면 컨테이너 -->
         <div id="home-screen" class="screen">
-            <div class="icon-grid">
-                <!-- 비밀 메시지 -->
-                <label for="menu-msg" class="app-icon">
-                    <div class="icon-shape" style="background-color: #25D366;">💬</div>
-                    <div class="app-name">비밀 메시지</div>
-                </label>
-                
-                <!-- 카카오톡 (새로 추가) -->
-                <label for="menu-kakao" class="app-icon">
-                    <div class="icon-shape" style="background-color: #FEE500; color: #181616;">💬</div>
-                    <div class="app-name">카카오톡</div>
-                </label>
+            <!-- 상단 가상 스마트 위젯 부근 -->
+            <div class="ios-widget">
+                <div class="widget-title">NEO SYNCHRONIZATION</div>
+                <div class="widget-body">지구 제4구역<br><span style="color: #0a84ff; font-weight: bold;">네트워크 노드 활성화됨</span></div>
+            </div>
 
-                <!-- 데이터룸 -->
+            <!-- 메인 바탕화면 앱 배치 공간 -->
+            <div class="app-grid">
+                <!-- 파일 앱 디자인 -->
                 <label for="menu-gallery" class="app-icon">
-                    <div class="icon-shape" style="background-color: #FF9500;">📁</div>
+                    <div class="icon-img-wrapper">
+                        <img src="https://icons8.com" alt="Files">
+                    </div>
                     <div class="app-name">데이터룸</div>
                 </label>
             </div>
+
+            <!-- 📥 아랫쪽 하단 앱 고정 독 (Dock) 영역 -->
+            <div class="ios-dock">
+                <!-- 메시지 앱 -->
+                <label for="menu-msg" class="app-icon">
+                    <div class="icon-img-wrapper">
+                        <img src="https://icons8.com" alt="Messages">
+                    </div>
+                    <div class="app-name">메시지</div>
+                </label>
+
+                <!-- 진짜 카카오톡 로고 원본 아이콘 -->
+                <label for="menu-kakao" class="app-icon">
+                    <div class="icon-img-wrapper">
+                        <img src="https://kakaocdn.net" alt="KakaoTalk">
+                    </div>
+                    <div class="app-name">카카오톡</div>
+                </label>
+            </div>
         </div>
 
-        <!-- 3. 메시지 앱 화면 -->
+        <!-- 💬 [2] 순정 메시지 스타일 창 -->
         <div id="message-screen" class="screen">
             <div class="app-page">
-                <div class="app-top-bar">
-                    <!-- 누르면 무조건 홈 화면 스위치(menu-home)를 켭니다 -->
-                    <label for="menu-home" class="back-btn">◀</label>
-                    <div class="app-title">수신된 통신</div>
+                <div class="ios-top-bar">
+                    <label for="menu-home" class="back-chevron">◀ 목록</label>
+                    <div class="ios-title">메시지</div>
                 </div>
-                <div class="app-content">
-                    <p style="color: #00f0ff;">[시스템]: 4차 혁명 가상 노드가 안정적으로 운영 중입니다.</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- 4. 카카오톡 앱 화면 -->
-        <div id="kakao-screen" class="screen">
-            <div class="app-page kakao-bg">
-                <div class="app-top-bar" style="background-color: #191919; border-bottom: 1px solid #292929;">
-                    <label for="menu-home" class="back-btn">◀</label>
-                    <div class="app-title" style="color: #fff;">채팅</div>
-                </div>
-                <div class="app-content" style="padding: 10px 15px;">
-                    <div class="chat-list">
-                        <!-- 채팅방 1 -->
-                        <div class="chat-item">
-                            <div class="chat-avatar">🤖</div>
-                            <div class="chat-info">
-                                <div class="chat-name">AI 동기화 센터</div>
-                                <div class="chat-preview">인간 의식 업로드 프로토콜이 94% 완료되었습니다...</div>
-                            </div>
-                            <div class="chat-meta">오전 5:40</div>
-                        </div>
-                        <!-- 채팅방 2 -->
-                        <div class="chat-item">
-                            <div class="chat-avatar" style="background-color: #5865F2;">👁️</div>
-                            <div class="chat-info">
-                                <div class="chat-name">혁명 포럼 운영진</div>
-                                <div class="chat-preview">포스타입 세계관 업로드 가이드를 공지방에서 필독해 주세요.</div>
-                            </div>
-                            <div class="chat-meta">어제</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 5. 데이터룸 앱 화면 -->
-        <div id="gallery-screen" class="screen">
-            <div class="app-page">
-                <div class="app-top-bar">
-                    <label for="menu-home" class="back-btn">◀</label>
+                <div style="padding: 20px; font-size: 0.95rem; line-height: 1.5;">
