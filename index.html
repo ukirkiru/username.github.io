@@ -1,290 +1,704 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KakaoTalk Simulator</title>
-    <style>
-        :root {
-            --iphone-w: 375px;
-            --iphone-h: 812px;
-            --ios-font: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
-        }
-
-        body {
-            background-color: #0e0e10;
-            color: #fff;
-            font-family: var(--ios-font);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        /* 📱 캡처 화면 비율의 정밀 아이폰 스크린 캔버스 */
-        .iphone-canvas {
-            width: var(--iphone-w);
-            height: var(--iphone-h);
-            background-color: #abc1d1; /* 카카오톡 순정 블루 배경색 */
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 25px 60px rgba(0,0,0,0.8);
-        }
-
-        /* 📊 iOS 순정 상단바 기믹 */
-        .ios-header {
-            height: 44px;
-            padding: 0 32px 0 32px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: #000; /* 이미지처럼 상단 바는 검은색 글씨 */
-            position: absolute;
-            width: calc(100% - 64px);
-            z-index: 100;
-            box-sizing: border-box;
-        }
-
-        /* 🔔 [핵심] 상단 카카오톡 푸시 알림 배너 (애플 순정 팝업 스타일) */
-        .ios-banner {
-            position: absolute;
-            top: 50px;
-            left: 12px;
-            right: 12px;
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-radius: 22px;
-            padding: 14px 16px;
-            color: #000;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-            z-index: 200;
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            font-size: 0.85rem;
-        }
-        .banner-icon {
-            width: 38px;
-            height: 38px;
-            background-color: #fee500;
-            border-radius: 10px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-weight: bold;
-            font-size: 0.75rem;
-        }
-        .banner-info { flex: 1; }
-        .banner-title { font-weight: bold; font-size: 0.88rem; margin-bottom: 2px; display: flex; justify-content: space-between; }
-        .banner-title .time { font-weight: normal; color: #666; font-size: 0.75rem; }
-        .banner-body { color: #333; line-height: 1.3; font-size: 0.85rem; }
-
-        /* 📊 세계관 전용 게이지 바 ([의심도 +8]) */
-        .stat-gauge-area {
-            position: absolute;
-            top: 155px;
-            left: 20px;
-            right: 20px;
-            z-index: 90;
-        }
-        .stat-label {
-            color: #d9383a; /* 이미지 속 특유의 진한 빨간색 글씨 */
-            font-size: 0.85rem;
-            font-weight: bold;
-            margin-bottom: 4px;
-            text-shadow: 0.5px 0.5px 1px rgba(255,255,255,0.8);
-        }
-        .gauge-track {
-            height: 6px;
-            background-color: rgba(0,0,0,0.15);
-            border-radius: 3px;
-            overflow: hidden;
-            width: 140px;
-        }
-        .gauge-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #ff9500, #ff3b30);
-            width: 65%; /* 수치 조절용 */
-        }
-
-        /* 💬 카카오톡 채팅방 메인 스크롤 구역 */
-        .chat-scroll-view {
-            height: 100%;
-            box-sizing: border-box;
-            padding: 190px 16px 80px 16px; /* 위젯과 상단바 공간 확보 */
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        /* 👤 상대방 말풍선 한 세트 (프로필 이미지 + 이름 + 말풍선들) */
-        .chat-group {
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            padding-left: 52px; /* 프로필 공간 */
-            margin-bottom: 8px;
-        }
-        .sender-avatar {
-            position: absolute;
-            left: 0;
-            top: 2px;
-            width: 40px;
-            height: 40px;
-            border-radius: 15px;
-            background-color: #ddd;
-            overflow: hidden;
-        }
-        .sender-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .sender-name {
-            font-size: 0.78rem;
-            color: #4f5860;
-            margin-bottom: 5px;
-            font-weight: 500;
-        }
-
-        /* 💬 카카오톡 오리지널 화이트 말풍선 스타일 정밀 이식 */
-        .bubble {
-            background-color: #ffffff;
-            color: #000;
-            font-size: 0.92rem;
-            padding: 8px 12px;
-            border-radius: 14px;
-            max-width: 230px;
-            width: fit-content;
-            line-height: 1.4;
-            letter-spacing: -0.3px;
-            margin-bottom: 4px;
-            box-shadow: 0 1px 1px rgba(0,0,0,0.05);
-            font-weight: 400;
-        }
-        /* 첫 번째 말풍선에만 들어가는 카카오톡 특유의 왼쪽 뾰족한 대화 촉 효과 */
-        .chat-group .bubble:first-of-type {
-            border-top-left-radius: 3px;
-        }
-
-        /* 🔴 하단 새 메시지 도착 팝업 단추 */
-        .new-msg-toast {
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #ff4b42; /* 이미지와 매칭되는 다홍빛 레드 */
-            color: #fff;
-            padding: 7px 16px;
-            border-radius: 20px;
-            font-size: 0.82rem;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-            cursor: pointer;
-            z-index: 150;
-        }
-        .new-msg-toast::before {
-            content: "●";
-            color: #fff;
-            font-size: 0.6rem;
-        }
-
-        /* 🟡 우측 상단 가상 노란 뱃지 기믹 */
-        .yellow-badge {
-            position: absolute;
-            top: 190px;
-            right: 16px;
-            width: 22px;
-            height: 22px;
-            background-color: #fee500;
-            border-radius: 50%;
-            border: 1px solid rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: #000;
-            font-size: 0.75rem;
-            font-weight: bold;
-            z-index: 100;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>iPhone 15 시뮬레이터</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(circle at top, #2b2d42, #0d0e16 70%);
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    color: #111; user-select: none;
+  }
+  .phone {
+    position: relative; width: 393px; height: 852px; border-radius: 56px;
+    background: #111; padding: 12px; box-shadow: 0 0 0 3px #3a3a3c, 0 30px 80px rgba(0,0,0,.6);
+  }
+  .screen-wrap {
+    position: relative; width: 100%; height: 100%; border-radius: 45px; overflow: hidden; background: #000;
+  }
+  .island {
+    position: absolute; top: 11px; left: 50%; transform: translateX(-50%);
+    width: 124px; height: 36px; background: #000; border-radius: 20px; z-index: 100;
+  }
+  .statusbar {
+    position: absolute; top: 0; left: 0; right: 0; height: 54px; z-index: 90;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 34px 0 42px; font-weight: 600; font-size: 16px; color: #fff; pointer-events: none;
+    transition: color .3s;
+  }
+  .statusbar.dark { color: #000; }
+  .statusbar .icons { font-size: 13px; letter-spacing: 3px; }
+  .screen {
+    position: absolute; inset: 0; background: #f2f2f7; display: none; flex-direction: column;
+    padding-top: 54px; animation: fadeIn .25s ease;
+  }
+  .screen.active { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; transform: scale(.98); } to { opacity: 1; transform: none; } }
+  .home-indicator {
+    position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+    width: 134px; height: 5px; border-radius: 3px; background: #fff; z-index: 100; cursor: pointer;
+  }
+  .home-indicator.dark { background: #000; }
+  /* HOME */
+  #home {
+    background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10'><rect width='10' height='10' fill='%23101840'/></svg>") ,
+      linear-gradient(160deg, #1d2b64 0%, #5a2d82 60%, #f0708a 100%);
+    padding: 70px 22px 0; background-color: #1d2b64;
+  }
+  .clock-widget { color: #fff; text-align: center; margin-bottom: 26px; }
+  .clock-widget .time { font-size: 72px; font-weight: 300; line-height: 1; }
+  .clock-widget .date { font-size: 15px; opacity: .85; margin-top: 4px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); row-gap: 22px; justify-items: center; }
+  .app-icon { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; width: 74px; }
+  .app-icon .ic {
+    width: 62px; height: 62px; border-radius: 14px; display: flex; align-items: center; justify-content: center;
+    font-size: 30px; box-shadow: 0 2px 6px rgba(0,0,0,.25); transition: transform .15s;
+  }
+  .app-icon:active .ic { transform: scale(.9); }
+  .app-icon span { color: #fff; font-size: 12px; text-shadow: 0 1px 2px rgba(0,0,0,.4); white-space: nowrap; }
+  .dock {
+    position: absolute; bottom: 26px; left: 14px; right: 14px; height: 96px; border-radius: 30px;
+    background: rgba(255,255,255,.25); backdrop-filter: blur(12px); display: flex; justify-content: space-around; align-items: center;
+  }
+  .dock .app-icon span { display: none; }
+  /* COMMON HEADER */
+  .header {
+    display: flex; align-items: center; justify-content: space-between; padding: 8px 14px;
+    background: rgba(249,249,249,.94); border-bottom: 1px solid #d1d1d6; min-height: 52px; flex-shrink: 0;
+  }
+  .header .title { font-weight: 700; font-size: 17px; }
+  .header .back { color: #007aff; font-size: 17px; cursor: pointer; min-width: 60px; }
+  .header .right { min-width: 60px; text-align: right; color: #007aff; font-size: 20px; cursor: pointer; }
+  .content { flex: 1; overflow-y: auto; padding-bottom: 40px; }
+  .content::-webkit-scrollbar { display: none; }
+  .list-item {
+    display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #fff; cursor: pointer; border-bottom: 1px solid #ececf0;
+  }
+  .list-item:active { background: #e5e5ea; }
+  .avatar {
+    width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 700; font-size: 18px; flex-shrink: 0;
+  }
+  .list-item .meta { flex: 1; min-width: 0; }
+  .list-item .name { font-weight: 600; font-size: 16px; }
+  .list-item .preview { color: #8e8e93; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+  .list-item .time-s { color: #8e8e93; font-size: 12px; align-self: flex-start; margin-top: 2px; }
+  /* CHAT */
+  .chat-body { flex: 1; overflow-y: auto; padding: 12px 10px; display: flex; flex-direction: column; gap: 6px; }
+  .chat-body::-webkit-scrollbar { display: none; }
+  .bubble {
+    max-width: 72%; padding: 9px 13px; border-radius: 18px; font-size: 15px; line-height: 1.4; word-break: keep-all; animation: pop .2s ease;
+  }
+  @keyframes pop { from { transform: scale(.9); opacity: 0; } to { transform: none; opacity: 1; } }
+  .bubble.me { align-self: flex-end; color: #fff; border-bottom-right-radius: 4px; }
+  .bubble.them { align-self: flex-start; background: #e9e9eb; color: #000; border-bottom-left-radius: 4px; }
+  .sys { align-self: center; color: #8e8e93; font-size: 12px; margin: 6px 0; }
+  .typing { align-self: flex-start; background: #e9e9eb; padding: 12px 14px; border-radius: 18px; display: flex; gap: 4px; }
+  .typing i { width: 7px; height: 7px; border-radius: 50%; background: #8e8e93; animation: blink 1s infinite; }
+  .typing i:nth-child(2) { animation-delay: .2s; } .typing i:nth-child(3) { animation-delay: .4s; }
+  @keyframes blink { 0%,100% { opacity: .3; } 50% { opacity: 1; } }
+  .input-bar {
+    display: flex; align-items: center; gap: 8px; padding: 8px 10px 26px; background: #f9f9f9; border-top: 1px solid #d1d1d6;
+  }
+  .input-bar input {
+    flex: 1; height: 36px; border-radius: 18px; border: 1px solid #d1d1d6; padding: 0 14px; font-size: 15px; outline: none; background: #fff;
+  }
+  .input-bar button {
+    height: 36px; padding: 0 14px; border: none; border-radius: 18px; color: #fff; font-weight: 600; cursor: pointer;
+  }
+  /* PHONE */
+  .keypad { padding: 10px 30px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .display { font-size: 36px; height: 48px; font-weight: 300; color: #000; letter-spacing: 2px; margin-top: 10px; }
+  .keys { display: grid; grid-template-columns: repeat(3, 76px); gap: 14px; }
+  .key {
+    width: 76px; height: 76px; border-radius: 50%; background: #e5e5ea; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-size: 30px; cursor: pointer; font-weight: 400;
+  }
+  .key small { font-size: 9px; letter-spacing: 2px; color: #3c3c43; margin-top: -4px; }
+  .key:active { background: #c7c7cc; }
+  .call-btn {
+    width: 76px; height: 76px; border-radius: 50%; background: #34c759; color: #fff; font-size: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; margin-top: 6px;
+  }
+  .call-screen {
+    position: absolute; inset: 0; background: linear-gradient(180deg, #3a3f55, #111); color: #fff; z-index: 80;
+    display: none; flex-direction: column; align-items: center; padding: 120px 20px 60px; text-align: center;
+  }
+  .call-screen.show { display: flex; }
+  .call-screen .big-av { width: 120px; height: 120px; border-radius: 50%; font-size: 48px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+  .call-screen .cname { font-size: 30px; font-weight: 500; }
+  .call-screen .cstat { font-size: 16px; opacity: .75; margin-top: 8px; }
+  .end-btn { margin-top: auto; width: 76px; height: 76px; border-radius: 50%; background: #ff3b30; color: #fff; font-size: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; transform: rotate(135deg); }
+  .seg { display: flex; background: #e5e5ea; border-radius: 9px; padding: 2px; margin: 10px 16px; }
+  .seg div { flex: 1; text-align: center; padding: 6px; border-radius: 7px; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .seg div.on { background: #fff; }
+  .missed { color: #ff3b30 !important; }
+  /* INSTAGRAM */
+  .ig-top { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: #fff; border-bottom: 1px solid #dbdbdb; }
+  .ig-logo { font-family: "Brush Script MT", cursive; font-size: 30px; font-weight: 700; }
+  .stories { display: flex; gap: 12px; padding: 10px 12px; overflow-x: auto; background: #fff; border-bottom: 1px solid #dbdbdb; }
+  .stories::-webkit-scrollbar { display: none; }
+  .story { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11px; min-width: 66px; cursor: pointer; }
+  .story .ring { width: 62px; height: 62px; border-radius: 50%; padding: 2px; background: linear-gradient(45deg,#f9ce34,#ee2a7b,#6228d7); }
+  .story .ring div { width: 100%; height: 100%; border-radius: 50%; border: 2px solid #fff; display: flex; align-items: center; justify-content: center; font-size: 22px; color: #fff; font-weight: 700; }
+  .post { background: #fff; margin-bottom: 10px; border-bottom: 1px solid #dbdbdb; }
+  .post-head { display: flex; align-items: center; gap: 10px; padding: 10px 12px; font-size: 14px; font-weight: 600; }
+  .post-head .avatar { width: 34px; height: 34px; font-size: 14px; }
+  .post-img { height: 340px; display: flex; align-items: center; justify-content: center; font-size: 90px; cursor: pointer; }
+  .post-actions { display: flex; gap: 16px; padding: 10px 12px 4px; font-size: 24px; }
+  .post-actions span { cursor: pointer; }
+  .post-actions .count { font-size: 14px; align-self: center; font-weight: 600; }
+  .post-cap { padding: 4px 12px 14px; font-size: 14px; line-height: 1.4; }
+  .ig-tabbar { display: flex; justify-content: space-around; padding: 10px 0 26px; background: #fff; border-top: 1px solid #dbdbdb; font-size: 22px; }
+  /* FACEBOOK */
+  .fb-top { display: flex; justify-content: space-between; align-items: center; padding: 8px 14px; background: #fff; }
+  .fb-logo { color: #1877f2; font-weight: 800; font-size: 28px; }
+  .fb-round { width: 36px; height: 36px; border-radius: 50%; background: #e4e6eb; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+  .fb-composer { background: #fff; padding: 12px; margin-bottom: 8px; display: flex; gap: 10px; align-items: center; }
+  .fb-composer .box { flex: 1; background: #f0f2f5; border-radius: 20px; padding: 9px 14px; color: #65676b; font-size: 14px; cursor: pointer; }
+  .fb-post { background: #fff; margin-bottom: 8px; padding-bottom: 6px; }
+  .fb-post .ph { padding: 12px; display: flex; gap: 10px; align-items: center; }
+  .fb-post .ph .avatar { width: 40px; height: 40px; font-size: 16px; }
+  .fb-post .ph .n { font-weight: 600; font-size: 15px; }
+  .fb-post .ph .t { font-size: 12px; color: #65676b; }
+  .fb-post .txt { padding: 0 12px 10px; font-size: 15px; line-height: 1.45; }
+  .fb-media { height: 240px; display: flex; align-items: center; justify-content: center; font-size: 80px; }
+  .fb-stats { display: flex; justify-content: space-between; padding: 8px 12px; color: #65676b; font-size: 13px; border-bottom: 1px solid #e4e6eb; margin: 0 12px; padding-left: 0; padding-right: 0; }
+  .fb-btns { display: flex; justify-content: space-around; padding: 4px 6px; }
+  .fb-btns div { flex: 1; text-align: center; padding: 8px; color: #65676b; font-weight: 600; font-size: 14px; border-radius: 6px; cursor: pointer; }
+  .fb-btns div:active { background: #f0f2f5; }
+  .fb-btns div.liked { color: #1877f2; }
+  .fb-tabbar { display: flex; justify-content: space-around; padding: 8px 0 26px; background: #fff; border-top: 1px solid #d1d1d6; font-size: 22px; }
+  /* SETTINGS / SIMPLE */
+  .simple { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #8e8e93; gap: 10px; font-size: 15px; }
+  .simple .big { font-size: 60px; }
+  .toast {
+    position: absolute; top: 60px; left: 50%; transform: translateX(-50%); background: rgba(40,40,40,.92); color: #fff; padding: 10px 16px; border-radius: 14px; font-size: 14px; z-index: 200; opacity: 0; transition: opacity .3s; pointer-events: none; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; }
+  .hint {
+    position: absolute; left: 50%; transform: translateX(-50%); top: -48px; color: #aaa; font-size: 13px; white-space: nowrap;
+  }
+</style>
 </head>
 <body>
-
-    <div class="iphone-canvas">
-        <!-- iOS 순정 상단 정보 레이어 -->
-        <div class="ios-header">
-            <span>7:59</span>
-            <span>📶 🛜 82</span>
-        </div>
-
-        <!-- 🔔 진짜 아이폰 상단 푸시 알림 배너 스크립트 -->
-        <div class="ios-banner">
-            <div class="banner-icon">TALK</div>
-            <div class="banner-info">
-                <div class="banner-title">KakaoTalk <span class="time">지금</span></div>
-                <div class="banner-body"><strong>리쿠:</strong> 왜 대답을 안 해 ㅠㅠ 제발 말 좀 해</div>
-            </div>
-        </div>
-
-        <!-- 📊 포스타입 전용 상태 수치 바 디자인 -->
-        <div class="stat-gauge-area">
-            <div class="stat-label">[의심도 +8]</div>
-            <div class="gauge-track">
-                <div class="gauge-bar"></div>
-            </div>
-        </div>
-
-        <!-- 🟡 우측 가상 버튼 레이어 -->
-        <div class="yellow-badge">ㅇ</div>
-
-        <!-- 💬 카카오톡 타임라인 연출 무대 -->
-        <div class="chat-scroll-view">
-            
-            <!-- 시온 오빠 대화 묶음 1 -->
-            <div class="chat-group">
-                <div class="sender-avatar">
-                    <img src="https://unsplash.com" alt="avatar">
-                </div>
-                <div class="sender-name">시온 오빠</div>
-                <div class="bubble">응이 뭐야 ㅋㅋㅋ</div>
-                <div class="bubble">갑자기 졸려?</div>
-                <div class="bubble">내일 점심은 푹 자고 나와</div>
-            </div>
-
-            <!-- 시온 오빠 대화 묶음 2 -->
-            <div class="chat-group">
-                <div class="sender-avatar">
-                    <img src="https://unsplash.com" alt="avatar">
-                </div>
-                <div class="sender-name">시온 오빠</div>
-                <div class="bubble">진짜 잠든 거 아니지?</div>
-                <div class="bubble">지금쯤이면 꿈나라 가있을 듯</div>
-                <div class="bubble">얼른 충전해야지 내일 만나서 놀지</div>
-            </div>
-
-            <!-- 시온 오빠 대화 묶음 3 (이미지 하단부 소름 돋는 연출 매칭) -->
-            <div class="chat-group">
-                <div class="sender-avatar">
-                    <img src="https://unsplash.com" alt="avatar">
-                </div>
-                <div class="sender-name">시온 오빠</div>
-                <div class="bubble">여주야</div>
-                <div class="bubble">기대하게 만들고 이게 뭐하는 거냐</div>
-                <div class="bubble">다른 사람이랑 그렇게 웃고 있었구나</div>
-                <div class="bubble">지금 당장 전화해</div>
-            </div>
-
-        </div>
-
-        <!-- 🔴 최하단 새 메시지 토스트 알림 단추 -->
-        <div class="new-msg-toast">새 메시지 도착</div>
+<div class="phone">
+  <div class="screen-wrap" id="wrap">
+    <div class="island"></div>
+    <div class="statusbar" id="statusbar">
+      <span id="clock">9:41</span>
+      <span class="icons">▮▮▮ 5G ▮</span>
     </div>
-
+    <!-- HOME -->
+    <div class="screen active" id="home" style="background:linear-gradient(160deg,#1d2b64 0%,#5a2d82 60%,#f0708a 100%);padding-top:0;">
+      <div style="padding:70px 22px 0;">
+        <div class="clock-widget">
+          <div class="time" id="bigclock">9:41</div>
+          <div class="date" id="bigdate"></div>
+        </div>
+        <div class="grid">
+          <div class="app-icon" onclick="openApp('kakao')"><div class="ic" style="background:#fee500;">💬</div><span>카카오톡</span></div>
+          <div class="app-icon" onclick="openApp('messages')"><div class="ic" style="background:#34c759;">✉️</div><span>메시지</span></div>
+          <div class="app-icon" onclick="openApp('phone')"><div class="ic" style="background:#34c759;">📞</div><span>전화</span></div>
+          <div class="app-icon" onclick="openApp('insta')"><div class="ic" style="background:linear-gradient(45deg,#f9ce34,#ee2a7b,#6228d7);">📷</div><span>인스타그램</span></div>
+          <div class="app-icon" onclick="openApp('facebook')"><div class="ic" style="background:#1877f2;">f</div><span>페이스북</span></div>
+          <div class="app-icon"><div class="ic" style="background:#8e8e93;">📸</div><span>카메라</span></div>
+          <div class="app-icon" onclick="toast('사진은 준비 중입니다')"><div class="ic" style="background:#fff;">🌄</div><span>사진</span></div>
+          <div class="app-icon" onclick="toast('지도는 준비 중입니다')"><div class="ic" style="background:#fff;">🗺️</div><span>지도</span></div>
+          <div class="app-icon" onclick="toast('메모는 준비 중입니다')"><div class="ic" style="background:#ffd60a;">📝</div><span>메모</span></div>
+        </div>
+      </div>
+      <div class="dock" style="position:absolute;">
+        <div class="app-icon" onclick="openApp('phone')"><div class="ic" style="background:#34c759;">📞</div></div>
+        <div class="app-icon" onclick="openApp('kakao')"><div class="ic" style="background:#fee500;">💬</div></div>
+        <div class="app-icon" onclick="openApp('insta')"><div class="ic" style="background:linear-gradient(45deg,#f9ce34,#ee2a7b,#6228d7);">📷</div></div>
+        <div class="app-icon" onclick="openApp('messages')"><div class="ic" style="background:#34c759;">✉️</div></div>
+      </div>
+    </div>
+    <!-- MESSAGES LIST -->
+    <div class="screen" id="messages">
+      <div class="header">
+        <span class="back" onclick="goHome()">‹ 홈</span>
+        <span class="title">메시지</span>
+        <span class="right">✎</span>
+      </div>
+      <div class="content" id="msgList"></div>
+    </div>
+    <!-- MESSAGE THREAD -->
+    <div class="screen" id="msgThread">
+      <div class="header">
+        <span class="back" onclick="showScreen('messages')">‹ 메시지</span>
+        <span class="title" id="msgThreadTitle"></span>
+        <span class="right">ⓘ</span>
+      </div>
+      <div class="chat-body" id="msgBody"></div>
+      <div class="input-bar">
+        <input id="msgInput" placeholder="iMessage" autocomplete="off">
+        <button style="background:#34c759;" onclick="sendMsg()">전송</button>
+      </div>
+    </div>
+    <!-- KAKAO LIST -->
+    <div class="screen" id="kakao" style="background:#fff;">
+      <div class="header" style="background:#fff;">
+        <span class="back" onclick="goHome()">‹ 홈</span>
+        <span class="title">채팅</span>
+        <span class="right">＋</span>
+      </div>
+      <div class="content" id="kakaoList"></div>
+    </div>
+    <!-- KAKAO CHAT -->
+    <div class="screen" id="kakaoThread" style="background:#b2c7d9;">
+      <div class="header" style="background:#b2c7d9;border-bottom:none;">
+        <span class="back" onclick="showScreen('kakao')">‹ 채팅</span>
+        <span class="title" id="kakaoThreadTitle"></span>
+        <span class="right">≡</span>
+      </div>
+      <div class="chat-body" id="kakaoBody"></div>
+      <div class="input-bar" style="background:#fff;">
+        <input id="kakaoInput" placeholder="메시지를 입력하세요" autocomplete="off">
+        <button style="background:#fee500;color:#3c1e1e;" onclick="sendKakao()">전송</button>
+      </div>
+    </div>
+    <!-- PHONE -->
+    <div class="screen" id="phone" style="background:#fff;">
+      <div class="seg" style="margin-top:8px;">
+        <div id="segKeypad" class="on" onclick="phoneTab('keypad')">키패드</div>
+        <div id="segRecent" onclick="phoneTab('recent')">최근 기록</div>
+        <div id="segContacts" onclick="phoneTab('contacts')">연락처</div>
+      </div>
+      <div id="phoneKeypadView" class="keypad">
+        <div class="display" id="dialDisplay"></div>
+        <div class="keys" id="keys"></div>
+        <div class="call-btn" onclick="dialCall()">📞</div>
+      </div>
+      <div id="phoneRecentView" class="content" style="display:none;"></div>
+      <div id="phoneContactsView" class="content" style="display:none;"></div>
+      <div style="height:90px;"></div>
+    </div>
+    <!-- CALL OVERLAY -->
+    <div class="call-screen" id="callScreen">
+      <div class="big-av" id="callAv"></div>
+      <div class="cname" id="callName"></div>
+      <div class="cstat" id="callStat">연결 중...</div>
+      <div class="end-btn" onclick="endCall()">📞</div>
+    </div>
+    <!-- INSTAGRAM -->
+    <div class="screen" id="insta" style="background:#fafafa;">
+      <div class="ig-top"><span class="ig-logo">Instagram</span><span style="font-size:22px;">♡ ✈︎</span></div>
+      <div class="content" style="padding-bottom:0;">
+        <div class="stories" id="igStories"></div>
+        <div id="igFeed"></div>
+      </div>
+      <div class="ig-tabbar"><span onclick="toast('홈')">⌂</span><span onclick="toast('검색')">⌕</span><span onclick="toast('릴스')">▶︎</span><span onclick="toast('쇼핑')">🛍</span><span onclick="showScreen('insta')">◉</span></div>
+    </div>
+    <!-- FACEBOOK -->
+    <div class="screen" id="facebook" style="background:#f0f2f5;">
+      <div class="fb-top"><span class="fb-logo">facebook</span><div style="display:flex;gap:8px;"><div class="fb-round">🔍</div><div class="fb-round">💬</div></div></div>
+      <div class="content">
+        <div class="fb-composer"><div class="avatar" style="background:#1877f2;width:40px;height:40px;font-size:16px;">나</div><div class="box" onclick="toast('글쓰기는 체험용에서는 준비 중입니다')">무슨 생각을 하고 계신가요?</div></div>
+        <div id="fbFeed"></div>
+      </div>
+      <div class="fb-tabbar"><span onclick="toast('홈')">🏠</span><span onclick="toast('친구')">👥</span><span onclick="toast('영상')">▶️</span><span onclick="toast('알림')">🔔</span><span onclick="toast('메뉴')">☰</span></div>
+    </div>
+    <div class="toast" id="toast"></div>
+    <div class="home-indicator" id="homeInd" onclick="goHome()"></div>
+  </div>
+</div>
+<script>
+/* ==================== 설정: 여기서 답장 규칙을 자유롭게 바꾸세요 ==================== */
+// keys: 이 단어 중 하나라도 포함되면 reply 전송 (띄어쓰기 무시, 대소문자 무시)
+// 메시지/카카오톡 각 대화방마다 rules를 따로 줄 수 있습니다.
+const MSG_THREADS = [
+  {
+    id: 'mom', name: '엄마', color: '#ff9f0a', avatar: '엄',
+    history: [
+      { from: 'them', text: '티빙 계정 왜 잠가놨어' },
+      { from: 'them', text: '비번 뭐였지 0628인가' },
+    ],
+    rules: [
+      { keys: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'], reply: '땡큐' },
+    ],
+    fallback: '응응, 알겠어~',
+  },
+  {
+    id: 'minsu', name: '민수', color: '#0a84ff', avatar: '민',
+    history: [
+      { from: 'them', text: '오늘 저녁에 농구 할래?' },
+    ],
+    rules: [
+      { keys: ['ㅇㅋ', '오케이', '좋아', '할게'], reply: '좋아! 7시에 체육관 앞에서 보자 🏀' },
+      { keys: ['싫', '안돼', '못'], reply: '아쉽다ㅠㅠ 다음에 하자!' },
+      { keys: ['뭐해', '뭐하'], reply: '그냥 게임 중이야 🎮 너는?' },
+      { keys: ['ㅋㅋ', 'ㅎㅎ'], reply: 'ㅋㅋㅋㅋ 웃기다' },
+    ],
+    fallback: '오 그렇구나!',
+  },
+  {
+    id: 'delivery', name: '택배 안내', color: '#8e8e93', avatar: '📦',
+    history: [
+      { from: 'them', text: '[택배] 주문하신 상품이 배송 출발했습니다.' },
+    ],
+    rules: [
+      { keys: ['배송', '어디'], reply: '현재 상품은 집화 후 배송 중입니다. 내일 도착 예정입니다.' },
+      { keys: ['취소'], reply: '배송 시작 전 주문만 취소 가능합니다. 고객센터(1234-5678)로 연락 주세요.' },
+    ],
+    fallback: '무엇을 도와드릴까요? "배송"이라고 입력해 보세요.',
+  },
+];
+const KAKAO_CHATS = [
+  {
+    id: 'team', name: '프로젝트 팀방', color: '#5e5ce6', avatar: '팀', members: 4,
+    history: [
+      { from: 'them', who: '지윤', text: '다들 회의록 확인하셨나요?' },
+      { from: 'them', who: '하은', text: '네! 3번 항목 수정했어요' },
+    ],
+    rules: [
+      { keys: ['회의록'], reply: '회의록은 공유 드라이브 "2026 기획" 폴더에 있어요 📁' },
+      { keys: ['ㅇㅋ', '확인', '넵'], reply: '👍 좋아요, 수고하셨습니다!' },
+      { keys: ['언제', '마감'], reply: '마감은 이번 주 금요일 오후 6시입니다!' },
+    ],
+    fallback: '네 알겠습니다 🙂',
+  },
+  {
+    id: 'jiyun', name: '지윤', color: '#ff375f', avatar: '지',
+    history: [
+      { from: 'them', text: '주말에 카페 갈래? ☕' },
+    ],
+    rules: [
+      { keys: ['갈래', '좋아', '가자'], reply: '좋았어! 토요일 오후 2시 어때? 📍 성수동 카페로!' },
+      { keys: ['싫', '안돼'], reply: '그럼 다음 주에 보자~' },
+      { keys: ['고마워', '감사'], reply: '뭘~ 언제든지 😄' },
+    ],
+    fallback: '응응 ㅎㅎ',
+  },
+  {
+    id: 'haeun', name: '하은', color: '#30d158', avatar: '하',
+    history: [
+      { from: 'them', text: '점심 뭐 먹을까요?' },
+    ],
+    rules: [
+      { keys: ['김치', '찌개'], reply: '오 좋아요! 근처 김치찌개 집 가요 🍲' },
+      { keys: ['파스타', '피자'], reply: '양식 콜! 식당 찾아볼게요 🍝' },
+      { keys: ['아무'], reply: '그럼 제가 골라볼게요! 😋' },
+    ],
+    fallback: '음... 어디 가고 싶으세요?',
+  },
+];
+// 전화 연락처
+const CONTACTS = [
+  { name: '엄마', num: '010-1234-5678', color: '#ff9f0a', avatar: '엄', answer: '여보세요~ 우리 아들/딸! 밥은 먹었어?' },
+  { name: '민수', num: '010-2345-6789', color: '#0a84ff', avatar: '민', answer: '여보세요! 농구 어때?' },
+  { name: '지윤', num: '010-3456-7890', color: '#ff375f', avatar: '지', answer: '응 여보세요~ 주말 카페 갈래?' },
+  { name: '하은', num: '010-4567-8901', color: '#30d158', avatar: '하', answer: '여보세요! 점심 뭐 먹을지 정했어요?' },
+];
+const RECENTS = [
+  { name: '엄마', type: '발신', time: '오늘 09:12', missed: false },
+  { name: '민수', type: '부재중', time: '어제 21:40', missed: true },
+  { name: '지윤', type: '수신', time: '10/22 14:05', missed: false },
+];
+const FEEDS_IG = [
+  { user: 'travel_jin', av: '진', color: '#ff9f0a', bg: 'linear-gradient(135deg,#43cea2,#185a9d)', emoji: '🏝️', cap: '바다가 너무 예뻤다 🌊 #여행 #제주', likes: 1243 },
+  { user: 'cook_hana', av: '하', color: '#30d158', bg: 'linear-gradient(135deg,#f7971e,#ffd200)', emoji: '🍰', cap: '주말 홈카페 완성 ☕ 레시피 궁금하면 댓글!', likes: 892 },
+  { user: 'dog_lover', av: '개', color: '#5e5ce6', bg: 'linear-gradient(135deg,#a18cd1,#fbc2eb)', emoji: '🐶', cap: '우리 집 막내 산책 나가자!', likes: 2318 },
+];
+const STORIES = ['travel_jin','cook_hana','dog_lover','minsu_mm','jiyun_0'];
+const FEEDS_FB = [
+  { user: '김서준', av: '서', color: '#0a84ff', time: '2시간 전', text: '드디어 프로젝트 끝냈다!! 다들 고생 많았어요 🎉', bg: 'linear-gradient(135deg,#667eea,#764ba2)', emoji: '🎉', likes: 58, comments: 12 },
+  { user: '이보라', av: '보', color: '#ff375f', time: '5시간 전', text: '오늘 날씨 진짜 좋다. 산책 어때요?', bg: 'linear-gradient(135deg,#fdc830,#f37335)', emoji: '☀️', likes: 134, comments: 27 },
+  { user: '박도현', av: '도', color: '#30d158', time: '어제', text: '새로 나온 맛집 다녀왔는데 강추합니다 🍜', bg: 'linear-gradient(135deg,#11998e,#38ef7d)', emoji: '🍜', likes: 76, comments: 8 },
+];
+/* ==================== 엔진 ==================== */
+const $ = (id) => document.getElementById(id);
+const norm = (s) => s.toLowerCase().replace(/\s/g, '');
+function matchReply(text, thread) {
+  const t = norm(text);
+  for (const r of thread.rules) {
+    for (const k of r.keys) if (t.includes(norm(k))) return r.reply;
+  }
+  return thread.fallback;
+}
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $(id).classList.add('active');
+  const dark = (id === 'home' || id === 'insta' ? false : true);
+  $('statusbar').classList.toggle('dark', id !== 'home' && !(id === 'kakaoThread' && false));
+  const ind = $('homeInd');
+  ind.classList.toggle('dark', id !== 'home');
+  if (id === 'home') $('statusbar').classList.remove('dark');
+  if (id !== 'home' && !['messages','msgThread','kakao','kakaoThread','phone','insta','facebook'].includes(id)) {}
+  if (id === 'insta' || id === 'facebook') $('statusbar').classList.add('dark');
+}
+function openApp(id) {
+  if (id === 'messages') { renderMsgList(); showScreen('messages'); }
+  else if (id === 'kakao') { renderKakaoList(); showScreen('kakao'); }
+  else if (id === 'phone') { showScreen('phone'); }
+  else if (id === 'insta') { renderInsta(); showScreen('insta'); }
+  else if (id === 'facebook') { renderFB(); showScreen('facebook'); }
+}
+function goHome() { showScreen('home'); }
+function toast(msg) {
+  const t = $('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 1600);
+}
+function now() {
+  const d = new Date();
+  return `${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+function bubble(body, text, who, color) {
+  const b = document.createElement('div');
+  b.className = 'bubble ' + (who === 'me' ? 'me' : 'them');
+  if (who === 'me') b.style.background = color;
+  b.textContent = text;
+  if (who !== 'me' && who !== 'them') return;
+  if (who === 'them' && body.dataset.lab) {
+    const w = document.createElement('div');
+    w.style.cssText = 'font-size:12px;color:#8e8e93;align-self:flex-start;margin-left:4px;';
+    w.textContent = body.dataset.lab;
+    body.appendChild(w);
+  }
+  body.appendChild(b);
+  body.scrollTop = body.scrollHeight;
+}
+function showTyping(body) {
+  const t = document.createElement('div');
+  t.className = 'typing'; t.innerHTML = '<i></i><i></i><i></i>';
+  body.appendChild(t); body.scrollTop = body.scrollHeight; return t;
+}
+/* ---------- 메시지 ---------- */
+let currentMsg = null;
+function renderMsgList() {
+  $('msgList').innerHTML = '';
+  MSG_THREADS.forEach(th => {
+    const last = th.history[th.history.length - 1];
+    const el = document.createElement('div');
+    el.className = 'list-item';
+    el.innerHTML = `<div class="avatar" style="background:${th.color}">${th.avatar}</div>
+      <div class="meta"><div class="name">${th.name}</div><div class="preview">${last.text}</div></div>
+      <div class="time-s">${th.lastTime || ''}</div>`;
+    el.onclick = () => openMsgThread(th.id);
+    $('msgList').appendChild(el);
+  });
+}
+function openMsgThread(id) {
+  currentMsg = MSG_THREADS.find(t => t.id === id);
+  $('msgThreadTitle').textContent = currentMsg.name;
+  const body = $('msgBody'); body.innerHTML = '';
+  body.insertAdjacentHTML('beforeend', '<div class="sys">iMessage</div>');
+  currentMsg.history.forEach(h => bubble(body, h.text, h.from, '#34c759'));
+  showScreen('msgThread');
+  setTimeout(() => $('msgInput').focus(), 300);
+}
+function sendMsg() {
+  const input = $('msgInput');
+  const text = input.value.trim();
+  if (!text || !currentMsg) return;
+  input.value = '';
+  const body = $('msgBody');
+  bubble(body, text, 'me', '#34c759');
+  currentMsg.history.push({ from: 'me', text });
+  const reply = matchReply(text, currentMsg);
+  const th = currentMsg;
+  const typing = showTyping(body);
+  setTimeout(() => {
+    typing.remove();
+    bubble(body, reply, 'them');
+    th.history.push({ from: 'them', text: reply });
+    th.lastTime = now();
+  }, 900 + Math.random() * 500);
+}
+$('msgInput').addEventListener('keydown', e => { if (e.key === 'Enter') sendMsg(); });
+/* ---------- 카카오톡 ---------- */
+let currentKakao = null;
+function renderKakaoList() {
+  $('kakaoList').innerHTML = '';
+  KAKAO_CHATS.forEach(c => {
+    const last = c.history[c.history.length - 1];
+    const el = document.createElement('div');
+    el.className = 'list-item';
+    el.innerHTML = `<div class="avatar" style="background:${c.color};border-radius:${c.members ? '16px' : '50%'}">${c.avatar}</div>
+      <div class="meta"><div class="name">${c.name}${c.members ? ' ' + c.members : ''}</div><div class="preview">${last.text}</div></div>
+      <div class="time-s">${c.lastTime || ''}</div>`;
+    el.onclick = () => openKakaoThread(c.id);
+    $('kakaoList').appendChild(el);
+  });
+}
+function openKakaoThread(id) {
+  currentKakao = KAKAO_CHATS.find(c => c.id === id);
+  $('kakaoThreadTitle').textContent = currentKakao.name;
+  const body = $('kakaoBody'); body.innerHTML = '';
+  body.insertAdjacentHTML('beforeend', '<div class="sys">' + new Date().toLocaleDateString('ko-KR') + '</div>');
+  currentKakao.history.forEach(h => {
+    if (h.who) { const w = document.createElement('div'); w.style.cssText='font-size:12px;color:#333;margin-left:4px;'; w.textContent = h.who; body.appendChild(w); }
+    bubble(body, h.text, h.from, '#fee500');
+  });
+  showScreen('kakaoThread');
+  setTimeout(() => $('kakaoInput').focus(), 300);
+}
+function sendKakao() {
+  const input = $('kakaoInput');
+  const text = input.value.trim();
+  if (!text || !currentKakao) return;
+  input.value = '';
+  const body = $('kakaoBody');
+  bubble(body, text, 'me', '#fee500');
+  currentKakao.history.push({ from: 'me', text });
+  const reply = matchReply(text, currentKakao);
+  const c = currentKakao;
+  const typing = showTyping(body);
+  setTimeout(() => {
+    typing.remove();
+    const who = c.members ? '지윤' : null;
+    if (who) { const w = document.createElement('div'); w.style.cssText='font-size:12px;color:#333;margin-left:4px;'; w.textContent = who; body.appendChild(w); }
+    bubble(body, reply, 'them');
+    c.history.push({ from: 'them', who, text: reply });
+    c.lastTime = now();
+  }, 900 + Math.random() * 500);
+}
+$('kakaoInput').addEventListener('keydown', e => { if (e.key === 'Enter') sendKakao(); });
+/* ---------- 전화 ---------- */
+let dial = '';
+const KEYS = [['1',''],['2','ABC'],['3','DEF'],['4','GHI'],['5','JKL'],['6','MNO'],['7','PQRS'],['8','TUV'],['9','WXYZ'],['*',''],['0','+'],['#','']];
+function buildKeys() {
+  $('keys').innerHTML = '';
+  KEYS.forEach(([n, s]) => {
+    const d = document.createElement('div');
+    d.className = 'key';
+    d.innerHTML = `${n}<small>${s}</small>`;
+    d.onclick = () => { dial += n; updateDial(); };
+    $('keys').appendChild(d);
+  });
+}
+function updateDial() {
+  $('dialDisplay').textContent = formatNum(dial);
+}
+function formatNum(s) {
+  if (s.length <= 3) return s;
+  if (s.length <= 7) return s.slice(0,3) + '-' + s.slice(3);
+  return s.slice(0,3) + '-' + s.slice(3,7) + '-' + s.slice(7,11);
+}
+function dialCall() {
+  const digits = dial.replace(/\D/g, '');
+  if (!digits) { renderRecents(); phoneTab('recent'); return; }
+  const c = CONTACTS.find(x => x.num.replace(/\D/g,'') === digits);
+  if (c) startCall(c);
+  else startCall({ name: formatNum(digits), num: formatNum(digits), color: '#8e8e93', avatar: '?', answer: '여보세요?' });
+}
+function startCall(c) {
+  $('callAv').style.background = c.color;
+  $('callAv').textContent = c.avatar;
+  $('callName').textContent = c.name;
+  $('callStat').textContent = '연결 중...';
+  $('callScreen').classList.add('show');
+  clearTimeout(window._ct);
+  window._ct = setTimeout(() => {
+    let sec = 0;
+    $('callStat').textContent = '00:00';
+    window._timer = setInterval(() => {
+      sec++;
+      $('callStat').textContent = String(Math.floor(sec/60)).padStart(2,'0') + ':' + String(sec%60).padStart(2,'0');
+    }, 1000);
+    window._answerTimer = setTimeout(() => {
+      toast(`${c.name}: ${c.answer}`);
+    }, 800);
+  }, 1500);
+  window._cur = c;
+}
+function endCall() {
+  clearInterval(window._timer);
+  clearTimeout(window._ct);
+  $('callScreen').classList.remove('show');
+  $('callStat').textContent = '연결 중...';
+  toast('통화를 종료했습니다');
+}
+function phoneTab(t) {
+  ['keypad','recent','contacts'].forEach(k => $('seg' + k[0].toUpperCase() + k.slice(1)).classList.toggle('on', k === t));
+  $('phoneKeypadView').style.display = t === 'keypad' ? 'flex' : 'none';
+  $('phoneRecentView').style.display = t === 'recent' ? 'block' : 'none';
+  $('phoneContactsView').style.display = t === 'contacts' ? 'block' : 'none';
+  if (t === 'recent') renderRecents();
+  if (t === 'contacts') renderContacts();
+}
+function renderRecents() {
+  $('phoneRecentView').innerHTML = RECENTS.map(r => {
+    const c = CONTACTS.find(x => x.name === r.name);
+    return `<div class="list-item" onclick="startCall(CONTACTS.find(x=>x.name==='${r.name}'))">
+      <div class="meta"><div class="name ${r.missed ? 'missed' : ''}">${r.name}</div><div class="preview">${r.type} · ${r.time}</div></div>
+      <span style="color:#007aff;font-size:20px;">ⓘ</span></div>`;
+  }).join('');
+}
+function renderContacts() {
+  $('phoneContactsView').innerHTML = CONTACTS.map(c => `
+    <div class="list-item" onclick='startCall(${JSON.stringify(c).replace(/'/g,"&#39;")})'>
+      <div class="avatar" style="background:${c.color}">${c.avatar}</div>
+      <div class="meta"><div class="name">${c.name}</div><div class="preview">${c.num}</div></div>
+      <span style="color:#34c759;font-size:22px;">📞</span></div>`).join('');
+}
+/* ---------- 인스타그램 ---------- */
+let igRendered = false;
+function renderInsta() {
+  if (igRendered) return;
+  igRendered = true;
+  $('igStories').innerHTML = STORIES.map((s, i) => `
+    <div class="story" onclick="toast('${s} 스토리')"><div class="ring"><div style="background:${['#ff9f0a','#30d158','#5e5ce6','#0a84ff','#ff375f'][i]}">${s[0].toUpperCase()}</div></div><span>${s}</span></div>`).join('');
+  $('igFeed').innerHTML = FEEDS_IG.map((p, i) => `
+    <div class="post">
+      <div class="post-head"><div class="avatar" style="background:${p.color}">${p.av}</div>${p.user}<span style="margin-left:auto;">•••</span></div>
+      <div class="post-img" style="background:${p.bg}" ondblclick="likeIG(${i})">${p.emoji}</div>
+      <div class="post-actions">
+        <span id="igHeart${i}" onclick="likeIG(${i})">♡</span><span onclick="toast('댓글 기능은 체험용으로 준비 중입니다')">💬</span><span onclick="toast('공유 완료!')">✈︎</span>
+        <span class="count" id="igCount${i}">좋아요 ${p.likes.toLocaleString()}개</span>
+      </div>
+      <div class="post-cap"><b>${p.user}</b> ${p.cap}</div>
+    </div>`).join('');
+}
+function likeIG(i) {
+  const p = FEEDS_IG[i];
+  p.liked = !p.liked;
+  p.likes += p.liked ? 1 : -1;
+  $('igHeart' + i).textContent = p.liked ? '❤️' : '♡';
+  $('igCount' + i).textContent = '좋아요 ' + p.likes.toLocaleString() + '개';
+}
+/* ---------- 페이스북 ---------- */
+let fbRendered = false;
+function renderFB() {
+  if (fbRendered) return;
+  fbRendered = true;
+  $('fbFeed').innerHTML = FEEDS_FB.map((p, i) => `
+    <div class="fb-post">
+      <div class="ph"><div class="avatar" style="background:${p.color}">${p.av}</div><div><div class="n">${p.user}</div><div class="t">${p.time} · 🌐</div></div></div>
+      <div class="txt">${p.text}</div>
+      <div class="fb-media" style="background:${p.bg}">${p.emoji}</div>
+      <div class="fb-stats" style="margin:0 12px;"><span id="fbCnt${i}">👍 ${p.likes}</span><span>댓글 ${p.comments}개</span></div>
+      <div class="fb-btns">
+        <div id="fbLike${i}" onclick="likeFB(${i})">👍 좋아요</div>
+        <div onclick="toast('댓글 기능은 체험용으로 준비 중입니다')">💬 댓글</div>
+        <div onclick="toast('공유 완료!')">↪ 공유</div>
+      </div>
+    </div>`).join('');
+}
+function likeFB(i) {
+  const p = FEEDS_FB[i];
+  p.liked = !p.liked;
+  p.likes += p.liked ? 1 : -1;
+  $('fbLike' + i).classList.toggle('liked', p.liked);
+  $('fbCnt' + i).textContent = '👍 ' + p.likes;
+}
+/* ---------- 초기화 & 시계 ---------- */
+function tick() {
+  const d = new Date();
+  const hm = `${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
+  $('clock').textContent = hm;
+  $('bigclock').textContent = hm;
+  $('bigdate').textContent = d.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' });
+}
+tick(); setInterval(tick, 10000);
+buildKeys();
+MSG_THREADS.forEach(t => t.lastTime = '');
+renderMsgList();
+renderKakaoList();
+</script>
 </body>
 </html>
