@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>순수 CSS 가상 모바일 OS</title>
+    <title>순수 CSS 가상 모바일 OS v2</title>
     <style>
         :root {
             --phone-width: 360px;
@@ -30,10 +30,10 @@
             box-shadow: 0 20px 40px rgba(0,0,0,0.8);
             position: relative;
             overflow: hidden;
-            background: linear-gradient(135deg, #1f1c2c, #928dab);
+            background: linear-gradient(135deg, #12100e, #2b4141); /* 4차혁명 딥 테마 배경 */
         }
 
-        /* ⚠️ 핵심 트릭: 화면 전환용 라디오 버튼 (화면에서 보이지 않게 숨김) */
+        /* ⚠️ 화면 전환용 라디오 버튼 숨김 */
         input[type="radio"] {
             display: none;
         }
@@ -50,9 +50,10 @@
             position: absolute;
             width: calc(100% - 40px);
             z-index: 100;
+            background: rgba(0, 0, 0, 0.2);
         }
 
-        /* 모든 화면의 기본 상태: 숨김 */
+        /* 모든 화면 기본 공통 상태: 숨김 */
         .screen {
             position: absolute;
             top: 0;
@@ -61,17 +62,16 @@
             height: 100%;
             display: none;
             box-sizing: border-box;
-            padding-top: 40px;
+            padding-top: 30px; /* 상태바 공간 만큼 확보 */
         }
 
-        /* ------------------------------------------------
-           💡 CSS의 마법: 선택된 라디오 버튼에 따라 특정 화면만 보이기
-        ------------------------------------------------ */
+        /* 💡 라디오 버튼 체크 상태에 따른 화면 교체 제어 */
         #menu-home:checked ~ #home-screen { display: block; }
         #menu-msg:checked ~ #message-screen { display: block; }
         #menu-gallery:checked ~ #gallery-screen { display: block; }
+        #menu-kakao:checked ~ #kakao-screen { display: block; }
 
-        /* 홈 화면 내 아이콘 배치 */
+        /* 홈 화면 바탕화면 아이콘 배치 */
         #home-screen { padding-top: 60px; }
         .icon-grid {
             display: grid;
@@ -80,7 +80,7 @@
             padding: 20px;
         }
 
-        /* 아이콘 역할을 하는 label 태그 (클릭하면 라디오 버튼이 켜짐) */
+        /* 아이콘 라벨 버튼 */
         .app-icon {
             display: flex;
             flex-direction: column;
@@ -98,14 +98,14 @@
             align-items: center;
             font-size: 1.8rem;
             margin-bottom: 5px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
             transition: transform 0.1s;
         }
 
         .app-icon:hover .icon-shape { transform: scale(1.05); }
         .app-name { font-size: 0.75rem; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); }
 
-        /* 하단 네비게이션 홈 바 */
+        /* 하단 소프트웨어 내비게이션 바 (가로 바) */
         .nav-bar {
             position: absolute;
             bottom: 10px;
@@ -115,55 +115,138 @@
             justify-content: center;
             z-index: 100;
         }
-
-        /* 홈 버튼 역할을 하는 label 태그 */
         .home-btn {
             width: 120px;
             height: 5px;
-            background-color: rgba(255, 255, 255, 0.8);
+            background-color: rgba(255, 255, 255, 0.6);
             border-radius: 3px;
             cursor: pointer;
         }
 
-        /* 앱 내부 공통 디자인 */
+        /* ------------------------------------------------
+           📱 앱 내부 디자인 공통 요소
+        ------------------------------------------------ */
         .app-page {
             background-color: #121212;
-            height: calc(100% - 40px);
-            padding: 20px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
         }
-        .app-header {
-            font-size: 1.5rem;
+
+        /* 상단 네비게이션 헤더 바 (뒤로가기 버튼 장착 영역) */
+        .app-top-bar {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            border-bottom: 1px solid #222;
+            background-color: #1a1a1a;
+        }
+
+        /* 🔙 뒤로가기 버튼 스타일 (라벨 활용) */
+        .back-btn {
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: #00f0ff;
+            margin-right: 15px;
+            padding: 2px 8px;
+            border-radius: 5px;
+            user-select: none;
+        }
+        .back-btn:hover { background-color: rgba(255,255,255,0.1); }
+
+        .app-title {
+            font-size: 1.1rem;
             font-weight: bold;
-            margin-bottom: 15px;
-            border-bottom: 1px solid #333;
-            padding-bottom: 10px;
+        }
+
+        .app-content {
+            padding: 20px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        /* ------------------------------------------------
+           💛 카카오톡 앱 내부 인터페이스 스타일
+        ------------------------------------------------ */
+        .kakao-bg {
+            background-color: #191919; /* 카카오톡 다크모드 배경색 */
+        }
+        .chat-list {
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #252525;
+        }
+        .chat-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 16px;
+            background-color: #ffe300;
+            margin-right: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+        }
+        .chat-info {
+            flex: 1;
+        }
+        .chat-name {
+            font-size: 0.95rem;
+            font-weight: bold;
+            color: #e5e5e5;
+            margin-bottom: 4px;
+        }
+        .chat-preview {
+            font-size: 0.8rem;
+            color: #8c8c8c;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+        }
+        .chat-meta {
+            text-align: right;
+            font-size: 0.75rem;
+            color: #666;
         }
     </style>
 </head>
 <body>
 
     <div class="phone-frame">
-        <!-- 상단 상태바 -->
+        <!-- 상단 고정 상태바 -->
         <div class="status-bar">
-            <span>12:00</span>
-            <span>📶 🔋 100%</span>
+            <span>05:52</span>
+            <span>📶 🔋 98%</span>
         </div>
 
-        <!-- 1. 리모컨 역할을 할 라디오 버튼들 (체크 상태에 따라 화면이 교체됨) -->
+        <!-- 1. 리모컨용 스위치 (카카오톡 대응 menu-kakao 추가) -->
         <input type="radio" name="phone-menu" id="menu-home" checked>
         <input type="radio" name="phone-menu" id="menu-msg">
         <input type="radio" name="phone-menu" id="menu-gallery">
+        <input type="radio" name="phone-menu" id="menu-kakao">
 
-        <!-- 2. 홈 화면 -->
+        <!-- 2. 기본 홈 화면 -->
         <div id="home-screen" class="screen">
             <div class="icon-grid">
-                <!-- 메시지 앱 아이콘 (menu-msg 라디오 버튼과 연결) -->
+                <!-- 비밀 메시지 -->
                 <label for="menu-msg" class="app-icon">
                     <div class="icon-shape" style="background-color: #25D366;">💬</div>
                     <div class="app-name">비밀 메시지</div>
                 </label>
                 
-                <!-- 데이터룸 앱 아이콘 (menu-gallery 라디오 버튼과 연결) -->
+                <!-- 카카오톡 (새로 추가) -->
+                <label for="menu-kakao" class="app-icon">
+                    <div class="icon-shape" style="background-color: #FEE500; color: #181616;">💬</div>
+                    <div class="app-name">카카오톡</div>
+                </label>
+
+                <!-- 데이터룸 -->
                 <label for="menu-gallery" class="app-icon">
                     <div class="icon-shape" style="background-color: #FF9500;">📁</div>
                     <div class="app-name">데이터룸</div>
@@ -174,24 +257,51 @@
         <!-- 3. 메시지 앱 화면 -->
         <div id="message-screen" class="screen">
             <div class="app-page">
-                <div class="app-header">📩 수신된 통신</div>
-                <p style="color: #00f0ff;">[시스템]: 4차 혁명 가상 노드가 활성화되었습니다.</p>
+                <div class="app-top-bar">
+                    <!-- 누르면 무조건 홈 화면 스위치(menu-home)를 켭니다 -->
+                    <label for="menu-home" class="back-btn">◀</label>
+                    <div class="app-title">수신된 통신</div>
+                </div>
+                <div class="app-content">
+                    <p style="color: #00f0ff;">[시스템]: 4차 혁명 가상 노드가 안정적으로 운영 중입니다.</p>
+                </div>
             </div>
         </div>
 
-        <!-- 4. 데이터룸 앱 화면 -->
+        <!-- 4. 카카오톡 앱 화면 -->
+        <div id="kakao-screen" class="screen">
+            <div class="app-page kakao-bg">
+                <div class="app-top-bar" style="background-color: #191919; border-bottom: 1px solid #292929;">
+                    <label for="menu-home" class="back-btn">◀</label>
+                    <div class="app-title" style="color: #fff;">채팅</div>
+                </div>
+                <div class="app-content" style="padding: 10px 15px;">
+                    <div class="chat-list">
+                        <!-- 채팅방 1 -->
+                        <div class="chat-item">
+                            <div class="chat-avatar">🤖</div>
+                            <div class="chat-info">
+                                <div class="chat-name">AI 동기화 센터</div>
+                                <div class="chat-preview">인간 의식 업로드 프로토콜이 94% 완료되었습니다...</div>
+                            </div>
+                            <div class="chat-meta">오전 5:40</div>
+                        </div>
+                        <!-- 채팅방 2 -->
+                        <div class="chat-item">
+                            <div class="chat-avatar" style="background-color: #5865F2;">👁️</div>
+                            <div class="chat-info">
+                                <div class="chat-name">혁명 포럼 운영진</div>
+                                <div class="chat-preview">포스타입 세계관 업로드 가이드를 공지방에서 필독해 주세요.</div>
+                            </div>
+                            <div class="chat-meta">어제</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. 데이터룸 앱 화면 -->
         <div id="gallery-screen" class="screen">
             <div class="app-page">
-                <div class="app-header">📁 기밀 데이터</div>
-                <p>CSS 스위치만으로 정상 작동하는 보안 저장소입니다.</p>
-            </div>
-        </div>
-
-        <!-- 하단 홈 네비게이션 바 (누르면 menu-home 라디오 버튼이 켜짐) -->
-        <div class="nav-bar">
-            <label for="menu-home" class="home-btn"></label>
-        </div>
-    </div>
-
-</body>
-</html>
+                <div class="app-top-bar">
+                    <label for="menu-home" class="back-btn">◀</label>
