@@ -116,6 +116,34 @@
   /* PHONE */
   .keypad { padding: 10px 30px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
   .display { font-size: 36px; height: 48px; font-weight: 300; color: #000; letter-spacing: 2px; margin-top: 10px; }
+ .dial-display-row {
+  position: relative;
+  width: 100%;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.dial-display-row .display {
+  margin-top: 0;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: 30px;
+}
+
+.delete-btn {
+  position: absolute;
+  right: 0;
+  border: none;
+  background: transparent;
+  color: #8e8e93;
+  font-size: 25px;
+  cursor: pointer;
+  padding: 5px;
+}
   .keys { display: grid; grid-template-columns: repeat(3, 76px); gap: 14px; }
   .key {
     width: 76px; height: 76px; border-radius: 50%; background: #e5e5ea; display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -765,6 +793,10 @@ function buildKeys() {
 }
 function updateDial() {
   $('dialDisplay').textContent = formatNum(dial);
+}
+ function deleteDigit() {
+  dial = dial.slice(0, -1);
+  updateDial();
 }
 function formatNum(s) {
   if (s.length <= 3) return s;
