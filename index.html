@@ -189,7 +189,7 @@
     <div class="island"></div>
     <div class="statusbar" id="statusbar">
       <span id="clock">9:41</span>
-      <span class="icons">▮▮▮ 5G ▮</span>
+      <span class="icons">. SKT 5G ▮</span>
     </div>
     <!-- HOME -->
     <div class="screen active" id="home" style="background:linear-gradient(160deg,#1d2b64 0%,#5a2d82 60%,#f0708a 100%);padding-top:0;">
@@ -212,9 +212,9 @@
       </div>
       <div class="dock" style="position:absolute;">
         <div class="app-icon" onclick="openApp('phone')"><div class="ic" style="background:#34c759;">📞</div></div>
+        <div class="app-icon" onclick="openApp('messages')"><div class="ic" style="background:#34c759;">✉️</div></div>
         <div class="app-icon" onclick="openApp('kakao')"><div class="ic" style="background:#fee500;">💬</div></div>
         <div class="app-icon" onclick="openApp('insta')"><div class="ic" style="background:linear-gradient(45deg,#f9ce34,#ee2a7b,#6228d7);">📷</div></div>
-        <div class="app-icon" onclick="openApp('messages')"><div class="ic" style="background:#34c759;">✉️</div></div>
       </div>
     </div>
     <!-- MESSAGES LIST -->
@@ -312,7 +312,7 @@
 // 메시지/카카오톡 각 대화방마다 rules를 따로 줄 수 있습니다.
 const MSG_THREADS = [
   {
-    id: 'mom', name: '엄마', color: '#cococo', avatar: '엄',
+    id: 'mom', name: '엄마', color: '#8e8e93', avatar: '엄',
     history: [
       { from: 'them', text: '티빙 계정 왜 잠가놨어' },
       { from: 'them', text: '비번 뭐였지 0628인가' },
@@ -320,10 +320,10 @@ const MSG_THREADS = [
     rules: [
       { keys: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'], reply: '땡큐' },
     ],
-    fallback: '응응, 알겠어~',
+    fallback: '100일의 거짓말 봐야돼서 바쁨',
   },
   {
-    id: 'minsu', name: '민수', color: '#0a84ff', avatar: '민',
+    id: 'minsu', name: '민수', color: '#8e8e93', avatar: '민',
     history: [
       { from: 'them', text: '오늘 저녁에 농구 할래?' },
     ],
@@ -336,13 +336,12 @@ const MSG_THREADS = [
     fallback: '오 그렇구나!',
   },
   {
-    id: 'delivery', name: '택배 안내', color: '#8e8e93', avatar: '📦',
+    id: 'delivery', name: '위시통운', color: '#8e8e93', avatar: '위',
     history: [
-      { from: 'them', text: '[택배] 주문하신 상품이 배송 출발했습니다.' },
+      { from: 'them', text: '[Web 발신] 택배문앞애놨뒀습니다' },
     ],
     rules: [
-      { keys: ['배송', '어디'], reply: '현재 상품은 집화 후 배송 중입니다. 내일 도착 예정입니다.' },
-      { keys: ['취소'], reply: '배송 시작 전 주문만 취소 가능합니다. 고객센터(1234-5678)로 연락 주세요.' },
+      { keys: ['배송'], reply: '현재 상품은 집화 후 배송 완료 되었습니다. 자세한 문의사항은 고객센터(2024-0221)로 연락 주세요.' },
     ],
     fallback: '무엇을 도와드릴까요? "배송"이라고 입력해 보세요.',
   },
