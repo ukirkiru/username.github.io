@@ -388,7 +388,7 @@
   12.84 12.84 0 0 0 2.81.7
   A2 2 0 0 1 22 16.92z"/>
 </svg></div></div>
-        <div class="app-icon" onclick="openApp('messages')"><div class="ic" style="background:#34c759;">✉️</div></div>
+        <div class="app-icon" onclick="openApp('messages')"><div class="ic" style="background:#34c759;">💬</div></div>
         <div class="app-icon" onclick="openApp('kakao')"><div class="ic" style="background:#fee500;">💬</div></div>
         <div class="app-icon" onclick="openApp('insta')"><div class="ic" style="background:linear-gradient(45deg,#f9ce34,#ee2a7b,#6228d7);">📷</div></div>
       </div>
@@ -709,7 +709,7 @@ function sendMsg() {
   if (!text || !currentMsg) return;
   input.value = '';
   const body = $('msgBody');
-  bubble(body, text, 'me', '#34c759');
+  bubble(body, text, 'me', '#007aff');
   currentMsg.history.push({ from: 'me', text });
   const reply = matchReply(text, currentMsg);
   const th = currentMsg;
