@@ -926,8 +926,6 @@ function tick() {
   const d = new Date();
   const hm = `${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
   $('clock').textContent = hm;
-  $('bigclock').textContent = hm;
-  $('bigdate').textContent = d.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' });
  $('lockTime').textContent = hm;
 $('lockDate').textContent = d.toLocaleDateString('ko-KR', {
   month: 'long',
